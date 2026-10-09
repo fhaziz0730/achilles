@@ -10,8 +10,16 @@ impl ErrorReporter {
     }
 
     pub fn report(&mut self, line: u32, message: &str, location: &str){
-        println!("[line {line}] Error {location}: {message}");
-        self.errors.push(format!("[line {line}] Error {location}: {message}"))
+        if location == "" {
+            self.errors.push(format!("[line {line}] Error {message}"))
+        } else {
+            self.errors.push(format!("[line {line}] Error {location}: {message}"))
+        }
+        
+    }
+
+    pub fn errors(&self) -> &[String] {
+        &self.errors
     }
 }
 

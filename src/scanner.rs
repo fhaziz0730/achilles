@@ -2,36 +2,19 @@ use crate::token::Literal;
 use crate::token::Token;
 use crate::token::TokenType;
 use crate::error_reporter::ErrorReporter;
-use crate::token::TokenType::And;
-use crate::token::TokenType::Class;
-use crate::token::TokenType::Else;
-use crate::token::TokenType::False;
-use crate::token::TokenType::Fun;
-use crate::token::TokenType::Identifier;
-use crate::token::TokenType::If;
-use crate::token::TokenType::Nil;
-use crate::token::TokenType::Or;
-use crate::token::TokenType::Print;
-use crate::token::TokenType::Return;
-use crate::token::TokenType::Super;
-use crate::token::TokenType::This;
-use crate::token::TokenType::True;
-use crate::token::TokenType::Var;
-use crate::token::TokenType::While;
 pub struct Scanner {
     source: Vec<char>,
     start: usize,
     current: usize,
     line: u32,
-    tokens: Vec<Token>,
-    errors: Vec<String>
+    tokens: Vec<Token>
 }
 
 impl Scanner {
     pub fn new(source: String) -> 
-    Self { Self { source: source.chars().collect(), start: 0, current: 0, line: 1, tokens: vec![], errors: vec![]} } 
+    Self { Self { source: source.chars().collect(), start: 0, current: 0, line: 1, tokens: vec![]} } 
     
-    pub fn scan(mut self, error_printer: &mut ErrorReporter) -> (Vec<Token>, Vec<String>){
+    pub fn scan(mut self, error_printer: &mut ErrorReporter) -> Vec<Token>{
     while !self.is_at_end()
     {
         self.start = self.current;
@@ -39,7 +22,7 @@ impl Scanner {
         self.scan_token(error_printer);
     }
     self.tokens.push(Token::new(TokenType::EOF, String::new(), None, self.line));
-    (self.tokens, self.errors)
+    self.tokens
     }
 
     fn scan_token(&mut self, error_printer: &mut ErrorReporter){
@@ -58,8 +41,8 @@ impl Scanner {
              Some('*') => self.add_token(TokenType::Star),
              Some('!') => if self.match_char('=') {self.add_token(TokenType::BangEqual)} else {self.add_token(TokenType::Bang)},
              Some('=') => if self.match_char('=') {self.add_token(TokenType::EqualEqual)} else {self.add_token(TokenType::Equal)},
-             Some('<') => if self.match_char('<') {self.add_token(TokenType::LessEqual)} else {self.add_token(TokenType::Less)},
-             Some('>') => if self.match_char('>') {self.add_token(TokenType::GreaterEqual)} else {self.add_token(TokenType::Greater)},
+             Some('<') => if self.match_char('=') {self.add_token(TokenType::LessEqual)} else {self.add_token(TokenType::Less)},
+             Some('>') => if self.match_char('=') {self.add_token(TokenType::GreaterEqual)} else {self.add_token(TokenType::Greater)},
              Some('/') => {
                 if self.match_char('/'){
                     while self.peek() != Some('\n') && !self.is_at_end() {
@@ -116,6 +99,7 @@ impl Scanner {
         }
         if (self.is_at_end()){
             error_printer.error(self.line, "Unterminated string");
+            return;
         }
         self.advance();
         let value = Literal::String(
@@ -180,22 +164,23 @@ impl Scanner {
                         .collect();
         let text = text.as_str();
         match text {
-            "and" => self.add_token(And),
-            "class" => self.add_token(Class),
-            "else" => self.add_token(Else),
-            "false" => self.add_token(False),
-            "for" => self.add_token(Fun),
-            "if" => self.add_token(If),
-            "nil" => self.add_token(Nil),
-            "or" => self.add_token(Or),
-            "print" => self.add_token(Print),
-            "return" => self.add_token(Return),
-            "super" => self.add_token(Super),
-            "this" => self.add_token(This),
-            "true" => self.add_token(True),
-            "var" => self.add_token(Var),
-            "while" => self.add_token(While),
-            _ => self.add_token(Identifier)
+            "and" => self.add_token(TokenType::And),
+            "class" => self.add_token(TokenType::Class),
+            "else" => self.add_token(TokenType::Else),
+            "false" => self.add_token(TokenType::False),
+            "for" => self.add_token(TokenType::For),
+            "fun" => self.add_token(TokenType::Fun),
+            "if" => self.add_token(TokenType::If),
+            "nil" => self.add_token(TokenType::Nil),
+            "or" => self.add_token(TokenType::Or),
+            "print" => self.add_token(TokenType::Print),
+            "return" => self.add_token(TokenType::Return),
+            "super" => self.add_token(TokenType::Super),
+            "this" => self.add_token(TokenType::This),
+            "true" => self.add_token(TokenType::True),
+            "var" => self.add_token(TokenType::Var),
+            "while" => self.add_token(TokenType::While),
+            _ => self.add_token(TokenType::Identifier)
         }
     }
 

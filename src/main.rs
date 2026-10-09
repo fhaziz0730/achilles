@@ -49,11 +49,11 @@ fn run(source: &String){
     }
     let scanner = Scanner::new(String::from(source));
     let mut error_reporter = error_reporter::ErrorReporter::new();
-    let (tokens, errors) =  scanner.scan(&mut error_reporter);
+    let tokens =  scanner.scan(&mut error_reporter);
     for token in tokens{
         println!("{}", token)
     }
-    for error in errors {
+    for error in error_reporter.errors() {
         eprintln!("{error}");
     }
 }
