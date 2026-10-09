@@ -1,8 +1,23 @@
-use crate::error_reporter;
 use crate::token::Literal;
 use crate::token::Token;
 use crate::token::TokenType;
 use crate::error_reporter::ErrorReporter;
+use crate::token::TokenType::And;
+use crate::token::TokenType::Class;
+use crate::token::TokenType::Else;
+use crate::token::TokenType::False;
+use crate::token::TokenType::Fun;
+use crate::token::TokenType::Identifier;
+use crate::token::TokenType::If;
+use crate::token::TokenType::Nil;
+use crate::token::TokenType::Or;
+use crate::token::TokenType::Print;
+use crate::token::TokenType::Return;
+use crate::token::TokenType::Super;
+use crate::token::TokenType::This;
+use crate::token::TokenType::True;
+use crate::token::TokenType::Var;
+use crate::token::TokenType::While;
 pub struct Scanner {
     source: Vec<char>,
     start: usize,
@@ -16,18 +31,18 @@ impl Scanner {
     pub fn new(source: String) -> 
     Self { Self { source: source.chars().collect(), start: 0, current: 0, line: 1, tokens: vec![], errors: vec![]} } 
     
-    pub fn scan(mut self, error_printer: ErrorReporter) -> (Vec<Token>, Vec<String>){
+    pub fn scan(mut self, error_printer: &mut ErrorReporter) -> (Vec<Token>, Vec<String>){
     while !self.is_at_end()
     {
         self.start = self.current;
         // scan token
-        self.scan_token(&error_printer);
+        self.scan_token(error_printer);
     }
     self.tokens.push(Token::new(TokenType::EOF, String::new(), None, self.line));
     (self.tokens, self.errors)
     }
 
-    fn scan_token(&mut self, error_printer: &ErrorReporter){
+    fn scan_token(&mut self, error_printer: &mut ErrorReporter){
         
         let c = self.advance();
         match c {
@@ -45,16 +60,72 @@ impl Scanner {
              Some('=') => if self.match_char('=') {self.add_token(TokenType::EqualEqual)} else {self.add_token(TokenType::Equal)},
              Some('<') => if self.match_char('<') {self.add_token(TokenType::LessEqual)} else {self.add_token(TokenType::Less)},
              Some('>') => if self.match_char('>') {self.add_token(TokenType::GreaterEqual)} else {self.add_token(TokenType::Greater)},
+             Some('/') => {
+                if self.match_char('/'){
+                    while self.peek() != Some('\n') && !self.is_at_end() {
+                        self.advance();
+                    }
+                } else {
+                    self.add_token(TokenType::Slash);
+                }
+             }
+             Some('"') => self.string(error_printer),
              None | Some(' ') | Some('\t') | Some('\r') => {},
              Some('\n') => {self.line = self.line + 1;},
-             Some(value) => {error_printer.error(self.line, &format!("Character not recognized: {value}"));}
+             Some(value) => {
+                if value.is_ascii_digit() {self.number()}
+                else if self.is_alpha(value) {self.identifier()}
+                else {error_printer.error(self.line, &format!("Character not recognized: {value}"));}
+             }
         } 
+    }
+
+    fn number(&mut self){
+        while self.peek().is_some_and(|c| c.is_ascii_digit()) {
+            self.advance();
+        }
+        if self.peek() == Some('.')
+            && self.peek_next().is_some_and(|c| c.is_ascii_digit())
+        {
+            self.advance();
+
+            while self.peek().is_some_and(|c| c.is_ascii_digit()) {
+                self.advance();
+            }
+        }
+        let value: f64 = self.source[self.start..self.current]
+        .iter()
+        .collect::<String>()
+        .parse()
+        .expect("Invalid number");
+
+        self.add_token_with_literal(
+            TokenType::Number,
+            Some(Literal::Number(value)),
+        );
     }
 
     fn is_at_end(&self) -> bool{
         self.current >= self.source.len()
     }
     
+    fn string(&mut self, error_printer: &mut ErrorReporter){
+        while self.peek() != Some('"') && !self.is_at_end() {
+            if self.peek() == Some('\n') { self.line = self.line + 1;}
+            self.advance();
+        }
+        if (self.is_at_end()){
+            error_printer.error(self.line, "Unterminated string");
+        }
+        self.advance();
+        let value = Literal::String(
+            self.source[self.start + 1..self.current - 1]
+                .iter()
+                .collect()
+        );
+        self.add_token_with_literal(TokenType::String, Some(value));
+    }
+
     fn advance(&mut self) -> Option<char> {
         let c = self.source.get(self.current).copied();
         if c.is_some(){
@@ -63,6 +134,14 @@ impl Scanner {
         c
     }
     
+    fn peek(&self) -> Option<char>{
+        self.source.get(self.current).copied()
+    }
+
+    fn peek_next(&self) -> Option<char>{
+        self.source.get(self.current + 1).copied()
+    }
+
     fn match_char(&mut self, expected: char) -> bool {
         if self.source.get(self.current) == Some(&expected) {
             self.current += 1;
@@ -88,4 +167,45 @@ impl Scanner {
         self.tokens
             .push(Token::new(token_type, lexeme, literal, self.line));
         }
+    
+    fn identifier(&mut self){
+        while self
+            .peek()
+            .is_some_and(|c| self.is_alpha_numeric(c))
+        {
+            self.advance();
+        }
+        let text: String = self.source[self.start..self.current]
+                        .iter()
+                        .collect();
+        let text = text.as_str();
+        match text {
+            "and" => self.add_token(And),
+            "class" => self.add_token(Class),
+            "else" => self.add_token(Else),
+            "false" => self.add_token(False),
+            "for" => self.add_token(Fun),
+            "if" => self.add_token(If),
+            "nil" => self.add_token(Nil),
+            "or" => self.add_token(Or),
+            "print" => self.add_token(Print),
+            "return" => self.add_token(Return),
+            "super" => self.add_token(Super),
+            "this" => self.add_token(This),
+            "true" => self.add_token(True),
+            "var" => self.add_token(Var),
+            "while" => self.add_token(While),
+            _ => self.add_token(Identifier)
+        }
+    }
+
+    fn is_alpha(&self, c: char) -> bool{
+        (c >= 'a' && c <= 'z') ||
+        (c >= 'A' && c <= 'Z') ||
+        c == '_'
+    }
+
+    fn is_alpha_numeric(&self, c: char) -> bool{
+        self.is_alpha(c) || c.is_ascii_digit()
+    }
 }

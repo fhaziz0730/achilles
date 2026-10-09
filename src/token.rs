@@ -1,12 +1,11 @@
 use core::fmt;
-#[derive(Clone)]
 pub enum Literal{
     Number(f64),
     String(String),
     Boolean(bool),
     Nil
 }
-#[derive(Clone)]
+
 pub enum TokenType{
     // Single-character tokens.
     LeftParen, RightParen, LeftBrace, RightBrace,
@@ -24,7 +23,7 @@ pub enum TokenType{
     EOF
 }
 
-#[derive(Clone)]
+
 pub struct Token {
     token_type: TokenType,
     lexeme: String,
@@ -37,8 +36,8 @@ impl fmt::Display for Token {
         match &self.token_type {
             TokenType::LeftParen => write!(f, "( on Line {}", self.line),
             TokenType::RightParen => write!(f, ") on Line {}", self.line),
-            TokenType::LeftBrace => write!(f, "[ on Line {}", self.line),
-            TokenType::RightBrace => write!(f, "] on Line {}", self.line),
+            TokenType::LeftBrace => write!(f, "{{ on Line {}", self.line),
+            TokenType::RightBrace => write!(f, "}} on Line {}", self.line),
             TokenType::Comma => write!(f, ", on Line {}", self.line),
             TokenType::Dot=> write!(f, ". on Line {}", self.line),
             TokenType::Minus =>  write!(f, "- on Line {}", self.line),

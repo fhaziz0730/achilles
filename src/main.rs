@@ -48,8 +48,8 @@ fn run(source: &String){
         println!("{token}");
     }
     let scanner = Scanner::new(String::from(source));
-    let error_reporter = error_reporter::ErrorReporter::new();
-    let (tokens, errors) =  scanner.scan(error_reporter);
+    let mut error_reporter = error_reporter::ErrorReporter::new();
+    let (tokens, errors) =  scanner.scan(&mut error_reporter);
     for token in tokens{
         println!("{}", token)
     }
