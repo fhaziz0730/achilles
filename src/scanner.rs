@@ -4,7 +4,7 @@ use crate::token::Token;
 use crate::token::TokenType;
 use crate::error_reporter::ErrorReporter;
 pub struct Scanner {
-    source: String,
+    source: Vec<char>,
     start: usize,
     current: usize,
     line: u32,
@@ -14,9 +14,9 @@ pub struct Scanner {
 
 impl Scanner {
     pub fn new(source: String) -> 
-    Self { Self { source, start: 0, current: 0, line: 1, tokens: vec![], errors: vec![]} } 
+    Self { Self { source: source.chars().collect(), start: 0, current: 0, line: 1, tokens: vec![], errors: vec![]} } 
     
-    pub fn scan(&mut self, error_printer: ErrorReporter) -> (Vec<Token>, Vec<String>){
+    pub fn scan(mut self, error_printer: ErrorReporter) -> (Vec<Token>, Vec<String>){
     while !self.is_at_end()
     {
         self.start = self.current;
@@ -24,7 +24,7 @@ impl Scanner {
         self.scan_token(&error_printer);
     }
     self.tokens.push(Token::new(TokenType::EOF, String::new(), None, self.line));
-    (self.tokens.clone(), self.errors.clone())
+    (self.tokens, self.errors)
     }
 
     fn scan_token(&mut self, error_printer: &ErrorReporter){
@@ -54,27 +54,38 @@ impl Scanner {
     fn is_at_end(&self) -> bool{
         self.current >= self.source.len()
     }
-
-    fn advance(&mut self) -> Option<char>{
-        self.current = self.current + 1;
-        let c = self.source.chars().nth(self.current-1);
+    
+    fn advance(&mut self) -> Option<char> {
+        let c = self.source.get(self.current).copied();
+        if c.is_some(){
+            self.current += 1;
+        }
         c
+    }
+    
+    fn match_char(&mut self, expected: char) -> bool {
+        if self.source.get(self.current) == Some(&expected) {
+            self.current += 1;
+            true
+        } else {
+            false
+        }
     }
 
     fn add_token(&mut self, token_type: TokenType){
         self.add_token_with_literal(token_type, None);
     }
 
-    fn add_token_with_literal(&mut self, token_type: TokenType, literal: Option<Literal>){
-        self.tokens.push(Token::new(token_type, String::new(), literal, self.line))
-    }
+    fn add_token_with_literal(
+        &mut self,
+        token_type: TokenType,
+        literal: Option<Literal>
+    ) {
+        let lexeme: String = self.source[self.start..self.current]
+            .iter()
+            .collect();
 
-    fn match_char(&mut self, c: char) -> bool{
-        if self.is_at_end() {return false};
-        if self.source.chars().nth(self.current) != Some(c){
-            return false;
+        self.tokens
+            .push(Token::new(token_type, lexeme, literal, self.line));
         }
-        self.current = self.current + 1;
-        return true;
-    }
 }

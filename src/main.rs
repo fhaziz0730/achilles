@@ -47,7 +47,7 @@ fn run(source: &String){
     for token in tokens {
         println!("{token}");
     }
-    let mut scanner = Scanner::new(String::from(source));
+    let scanner = Scanner::new(String::from(source));
     let error_reporter = error_reporter::ErrorReporter::new();
     let (tokens, errors) =  scanner.scan(error_reporter);
     for token in tokens{
