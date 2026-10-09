@@ -1,6 +1,7 @@
 use std::{env, fs, io::{self, Write}, process::exit};
 mod token;
 mod scanner;
+mod error_reporter;
 use scanner::Scanner;
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -47,19 +48,12 @@ fn run(source: &String){
         println!("{token}");
     }
     let mut scanner = Scanner::new(String::from(source));
-    let (tokens, errors) =  scanner.scan();
+    let error_reporter = error_reporter::ErrorReporter::new();
+    let (tokens, errors) =  scanner.scan(error_reporter);
     for token in tokens{
         println!("{}", token)
     }
     for error in errors {
         eprintln!("{error}");
     }
-}
-
-fn error(line: u32, message: &String){
-    report(line, message, &String::from(""));
-}
-
-fn report(line: u32, message: &String, location: &String){
-    println!("[line {line}] Error {location}: {message}");
 }

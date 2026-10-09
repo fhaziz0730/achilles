@@ -1,11 +1,12 @@
 use core::fmt;
-
+#[derive(Clone)]
 pub enum Literal{
     Number(f64),
     String(String),
     Boolean(bool),
     Nil
 }
+#[derive(Clone)]
 pub enum TokenType{
     // Single-character tokens.
     LeftParen, RightParen, LeftBrace, RightBrace,
@@ -23,6 +24,7 @@ pub enum TokenType{
     EOF
 }
 
+#[derive(Clone)]
 pub struct Token {
     token_type: TokenType,
     lexeme: String,
