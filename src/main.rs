@@ -2,8 +2,19 @@ use std::{env, fs, io::{self, Write}, process::exit};
 mod token;
 mod scanner;
 mod error_reporter;
+mod expr;
 use scanner::Scanner;
+use crate::{expr::Expr::{self, Binary, Grouping, Literal, Unary}, token::{Literal::Number, TokenType::{Minus, Star}}};
 fn main() {
+    let expression = Binary(
+        Box::new(Unary(
+            token::Token::new(Minus, String::from("-"), None, 1),
+            Box::new(Literal(Number(123.0)))
+        )),
+        token::Token::new(Star, String::from("*"), None, 1),
+        Box::new(Grouping(Box::new(Literal(Number(45.67)))))
+    );
+    println!("{}", expression);
     let args: Vec<String> = env::args().collect();
     dbg!(&args);
     if args.len() > 2 {

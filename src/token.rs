@@ -1,9 +1,21 @@
 use core::fmt;
+
 pub enum Literal{
     Number(f64),
     String(String),
     Boolean(bool),
     Nil
+}
+
+impl fmt::Display for Literal{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Literal::Boolean(bool) => write!(f, "{}", bool),
+            Literal::Number(num) => write!(f, "{}", num),
+            Literal::String(str) => write!(f, "\"{}\"", str),
+            Literal::Nil => write!(f, "nil")
+        }
+    }
 }
 
 pub enum TokenType{
