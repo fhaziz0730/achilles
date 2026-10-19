@@ -1,5 +1,6 @@
 use core::fmt;
 
+#[derive(Clone, Debug)]
 pub enum Literal{
     Number(f64),
     String(String),
@@ -18,6 +19,8 @@ impl fmt::Display for Literal{
     }
 }
 
+#[derive(Clone, Debug)]
+#[derive(PartialEq)]
 pub enum TokenType{
     // Single-character tokens.
     LeftParen, RightParen, LeftBrace, RightBrace,
@@ -35,7 +38,7 @@ pub enum TokenType{
     EOF
 }
 
-
+#[derive(Clone, Debug)]
 pub struct Token {
     token_type: TokenType,
     lexeme: String,

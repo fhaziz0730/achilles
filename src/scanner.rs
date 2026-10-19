@@ -97,7 +97,7 @@ impl Scanner {
             if self.peek() == Some('\n') { self.line = self.line + 1;}
             self.advance();
         }
-        if (self.is_at_end()){
+        if self.is_at_end() {
             error_printer.error(self.line, "Unterminated string");
             return;
         }
