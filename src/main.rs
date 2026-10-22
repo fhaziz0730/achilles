@@ -5,6 +5,7 @@ mod error_reporter;
 mod expr;
 use scanner::Scanner;
 mod parser;
+mod interpreter;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -59,7 +60,14 @@ fn run(source: &String){
     for error in error_reporter.errors() {
         eprintln!("{error}");
     }
+    if error_reporter.errors().len() > 0 {
+        return;
+    }
     let mut parser = parser::Parser::new(tokens);
     let tree = parser.parse();
-    println!("{}", tree);
+    match tree {
+        Ok(expr) => println!("{}", expr),
+        Err(err) => {eprintln!("{}", err); return;}
+    }
+
 }
