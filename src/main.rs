@@ -4,6 +4,7 @@ mod scanner;
 mod error_reporter;
 mod expr;
 use scanner::Scanner;
+
 mod parser;
 mod interpreter;
 
@@ -65,9 +66,18 @@ fn run(source: &String){
     }
     let mut parser = parser::Parser::new(tokens);
     let tree = parser.parse();
+    let eval;
     match tree {
-        Ok(expr) => println!("{}", expr),
+        Ok(expr) => {
+            println!("{}", expr);
+            let interp = interpreter::Interpreter::new();
+            eval = interp.evaluate(expr);
+
+        },
         Err(err) => {eprintln!("{}", err); return;}
     }
-
+    match eval {
+        Ok(x) => println!("{}", x),
+        Err(err) => {eprintln!("{}", err); return;}
+    }
 }
