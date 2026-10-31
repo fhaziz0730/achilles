@@ -97,7 +97,6 @@ impl Token {
     Self { Self { token_type, lexeme, literal, line } } 
     pub fn token_type(&self) -> &TokenType { &self.token_type }
     pub fn lexeme(&self) -> &String { &self.lexeme }
-    pub fn line(&self) -> u32 { self.line }
     pub fn literal(&self) -> Option<&Literal> {
         self.literal.as_ref()
     }

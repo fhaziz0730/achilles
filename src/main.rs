@@ -3,6 +3,7 @@ mod token;
 mod scanner;
 mod error_reporter;
 mod expr;
+mod stmt;
 use scanner::Scanner;
 
 mod parser;
@@ -68,16 +69,18 @@ fn run(source: &String){
     let tree = parser.parse();
     let eval;
     match tree {
-        Ok(expr) => {
-            println!("{}", expr);
+        Ok(stmts) => {
+            for stmt in stmts.iter() {
+                println!("{}", stmt);
+            }
             let interp = interpreter::Interpreter::new();
-            eval = interp.evaluate(expr);
+            eval = interp.interpret(stmts);
 
         },
         Err(err) => {eprintln!("{}", err); return;}
     }
     match eval {
-        Ok(x) => println!("{}", x),
+        Ok(()) => println!("Ran successfully"),
         Err(err) => {eprintln!("{}", err); return;}
     }
 }

@@ -1,4 +1,4 @@
-use crate::{expr::Expr::{self}, token::{Literal, Token, TokenType}};
+use crate::{expr::Expr::{self}, stmt::Stmt, token::{Literal, Token, TokenType}};
 
 
 pub struct Interpreter {
@@ -7,7 +7,23 @@ pub struct Interpreter {
 
 impl Interpreter {
     pub fn new() -> Self { Self { } } 
-    pub fn evaluate (&self, expr: Expr) -> Result<Literal, String> {
+    pub fn interpret(&self, stmts: Vec<Stmt>) -> Result<(), String> {
+        for stmt in stmts{
+            self.execute(stmt)?;
+        }
+        Ok(())
+    }
+    fn execute(&self, stmt: Stmt) -> Result<(), String> {
+        match stmt {
+            Stmt::Expression(expr) => {self.evaluate(expr)?; Ok(())},
+            Stmt::Print(value) => {
+                let v = self.evaluate(value)?;
+                println!("{}", v);
+                Ok(())
+            }
+        }
+    }
+    fn evaluate (&self, expr: Expr) -> Result<Literal, String> {
          return match expr {
             Expr::Literal(literal) => Ok(literal),
             Expr::Grouping(expr_tail) => self.evaluate(*expr_tail),
